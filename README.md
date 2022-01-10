@@ -1,9 +1,9 @@
-#Payment Gateway
+# Payment Gateway
 
 This is a minimal project for a Payment Gateway, a stateless serverless application built on top of AWS.
 It consists of AWS API Gateway, Lambda, DynamoDB NoSQL and built using [CDK](https://docs.aws.amazon.com/cdk/v2/guide/getting_started.html). 
 
-##Design 
+## Design 
 
 ![payment-gateway](https://user-images.githubusercontent.com/1239788/148842390-66093bfd-13cc-4396-9e95-85312914d9f4.jpeg)
 
@@ -34,17 +34,17 @@ BankSimulator is a stubbed class to return different payment statuses based on t
 This project is far from 'production ready' status, and I had to cut a lot of corners due to the time allocated. 
 Nevertheless, here are some food for thought points:
 
-####Security
+#### Security
  - The APIs don't have authentication/authorisation for the merchant clients. For instance, authenticating clients to use our APIs and authorising them 
    to use specific merchantIds.
  - The classification of data stored and passed around different components are **Critical**. It needs be encrypted at Rest and tokenizing the payment 
    details to pass a token around instead of the actual data.
 
-####Scalability/Cost
+#### Scalability/Cost
 Although, AWS Lambda can handle high TPS (relatively), it's not recommended to use for latency nor cost sensitive use cases. Scaling up Lambdas 
 has proven to be more costly than e.g running ECS tasks on th long run.
 
-####Availability and Consistency 
+#### Availability and Consistency 
 - In `/make-payment`, the call to BankSimulator happens first then we store the result to DDB. However, when the call to DDB fails, we won't store the result. 
 That means these two calls are not atomically guaranteed. 
 If the payment is `Approved` we'll need to return it to the merchant and retry later to sync the correct status in our DDB. Another option is to rollback the 
@@ -52,13 +52,13 @@ transaction to the bank and and return `Failed` to the client.
   
 - We need to introduce throttling based on merchantIds, however this might increase complexity to clients usage.
 
-####Testing
+#### Testing
  - Currently, the project is missing unit tests and integration tests. I've added some acceptance tests for some main scenarios, but it's far from done.
  - Missing input format validation for each field.
 
-##Usage
+## Usage
 
- - ###POST /create-payment
+ - ### POST /create-payment
     
     **Purpose:** Use this API to create a new ```paymentId``` for the merchant.
     
@@ -76,7 +76,7 @@ transaction to the bank and and return `Failed` to the client.
     **Notes** After 10 minutes the `payment-id` will expire if not used, and will be deleted from the DDB. 
     
 
- - ###POST /make-payment
+ - ### POST /make-payment
 
    **Purpose:** Use this API to complete the payment using the ```paymentId``` and all expected card information.
 
@@ -121,7 +121,7 @@ transaction to the bank and and return `Failed` to the client.
    | 24 | Pending | Make another request with the same amount to be Accepted
    | any other amount | Accepted |
 
- - ###GET /get-payment
+ - ### GET /get-payment
 
    **Purpose:** The purpose of this API is to return the payment details for the ```paymentId``` and ```merchantId```.
 
@@ -150,7 +150,7 @@ transaction to the bank and and return `Failed` to the client.
     curl -G -d "merchantId=test-merchant" -d "paymentId=59c7a3dd-a035-41c6-97ee-d930cd340ce2" https://jn2zxhxbfg.execute-api.eu-west-2.amazonaws.com/prod/get-payment    
     ```
 
-##Build From Source
+## Build From Source
 - Clone the package.
 ```
   $ git clone git@github.com:OmarEl-Mohandes/PaymentGateway.git
