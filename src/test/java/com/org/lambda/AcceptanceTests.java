@@ -29,7 +29,7 @@ public class AcceptanceTests {
     private final String merchantId = "testMerchantId";
 
     @BeforeAll
-    public static void setUpClass() {
+    public static void setupClass() {
         System.setProperty("sqlite4java.library.path", "native-libs");
 
         AmazonDynamoDBLocal amazonDynamoDBLocal = DynamoDBEmbedded.create();
@@ -228,7 +228,6 @@ public class AcceptanceTests {
         assertNull(makePaymentResponse.getFailCode());
         assertNull(makePaymentResponse.getFailReason());
     }
-
 
     @Test
     public void testMakePaymentToReturnPendingAndRetryThenSucceed() {
