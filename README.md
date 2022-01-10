@@ -31,35 +31,34 @@ to get all the payments for merchant for a specific window.
 BankSimulator is a stubbed class to return different payment statuses based on the `amount` in the request. It's used only in `/make-payment` API.
 
 ### Areas Of Improvements 
-This project is far from 'production ready' status, and I had to cut a lot of corners due to my available time  
-Nevertheless, here are some food for thought points:
+This project is far from 'production ready' status, and I had to cut a lot of corners due to my available time. Nevertheless, here are some food for thought points:
 
-#### Security
- - The APIs don't have authentication/authorisation for the merchant clients. For instance, authenticating clients to use our APIs and authorising them 
-   to use specific merchantIds.
- - The classification of data stored and passed around different components are **Critical**. It needs be encrypted at Rest and tokenizing the payment 
-   details to pass a token around instead of the actual data.
+- #### Security
+    - The APIs don't have authentication/authorisation for the merchant clients. For instance, authenticating clients to use our APIs and authorising them 
+      to use specific merchantIds.
+    - The classification of data stored and passed around different components are **Critical**. It needs be encrypted at Rest and tokenizing the payment 
+      details to pass a token around instead of the actual data.
 
-#### Scalability/Cost
-Although, AWS Lambda can handle high TPS (relatively), it's not recommended to use for latency nor cost sensitive use cases. Scaling up Lambdas 
-has proven to be more costly than e.g running ECS tasks on the long run.
-
-#### Availability and Consistency 
-- In `/make-payment`, the call to BankSimulator happens first then we store the result to DDB. However, when the call to DDB fails, we won't store the result. 
-That means these two calls are not atomically guaranteed. 
-If the payment is `Approved` we'll need to return it to the merchant and retry later to sync the correct status in our DDB. Another option is to rollback the 
-transaction to the bank and and return `Failed` to the client.
-  
-- We need to introduce throttling based on merchantIds, however this might increase complexity to clients usage.
-
-#### Validation and Testing
- - Currently, the project is missing unit tests and integration tests. I've added some acceptance tests for some main scenarios, but it's far from done.
- - Introducing input format validation for each field.
- - Writing javadocs for each function API in my code, and proper API documentation.
-
-#### Monitoring and Observability
-A lot of metrics needs to be emitted specially in failure modes between the components. Big TODO around merchant alarms
-and dashboards.
+- #### Scalability/Cost
+   Although, AWS Lambda can handle high TPS (relatively), it's not recommended to use for latency nor cost sensitive use cases. Scaling up Lambdas 
+   has proven to be more costly than e.g running ECS tasks on the long run.
+   
+- #### Availability and Consistency 
+   - In `/make-payment`, the call to BankSimulator happens first then we store the result to DDB. However, when the call to DDB fails, we won't store the result. 
+   That means these two calls are not atomically guaranteed. 
+   If the payment is `Approved` we'll need to return it to the merchant and retry later to sync the correct status in our DDB. Another option is to rollback the 
+   transaction to the bank and and return `Failed` to the client.
+     
+   - We need to introduce throttling based on merchantIds, however this might increase complexity to clients usage.
+   
+- #### Validation and Testing
+    - Currently, the project is missing unit tests and integration tests. I've added some acceptance tests for some main scenarios, but it's far from done.
+    - Introducing input format validation for each field.
+    - Writing javadocs for each function API in my code, and proper API documentation.
+   
+- #### Monitoring and Observability
+   A lot of metrics needs to be emitted specially in failure modes between the components. Big TODO around merchant alarms
+   and dashboards.
  
 
 ## Usage
