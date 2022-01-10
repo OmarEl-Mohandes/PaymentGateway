@@ -10,12 +10,12 @@ It consists of AWS API Gateway, Lambda, DynamoDB NoSQL and built using [CDK](htt
 ### Workflow
 I've used API Gateway to create three APIs, and each handled by a separate lambda function. I choose separate lambdas to maintain, provision, scale and deploy each use case independently.
 
-To start a payment transaction you need to call `/create-payment` API to generate a new `payment-id` using your `merchant-id` and stores them in DDB 
-with a timestamp and status `Created`.
+To start a payment transaction you need to call `/create-payment` API to generate a new `payment-id` using your `merchant-id`. They will be stored in DDB 
+with a creationTimestamp and status `Created`.
 Once the `payment-id` is created, it's attached to the `merchant-id` and will expire in 10 minutes in case no payment 
 has been made after. TTL is enabled on this table so items can get deleted if expired. 
 
-Using the `payment-id` you can call `/make-payment` API with the required details to complete the payment.  I choose to separate the two APIs to make the `/make-payment` API idempotent.
+Using the `payment-id` you can call `/make-payment` API with the required details to complete the payment. I choose to separate the two APIs to make the `/make-payment` API idempotent.
 
 The API `/get-payment` can be called anytime to check the status of the payment.
 
