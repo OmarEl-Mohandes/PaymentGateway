@@ -1,4 +1,4 @@
-package com.org;
+package com.org.cdk;
 
 import software.amazon.awscdk.core.*;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;
@@ -61,7 +61,7 @@ public class PaymentGatewayCdkStack extends Stack {
             .timeout(Duration.minutes(1))
             .memorySize(500)
             .environment(env)
-            .code(Code.fromAsset("target/payment-gateway-0.1.jar"))
+            .code(Code.fromAsset("target/PaymentGateway-0.1.jar"))
             .handler("com.org.lambda.CreatePaymentHandler::handleRequest")
             .build();
         merchantPaymentTable.grantFullAccess(createPaymentLambda);
@@ -72,7 +72,7 @@ public class PaymentGatewayCdkStack extends Stack {
             .timeout(Duration.minutes(1))
             .memorySize(500)
             .environment(env)
-            .code(Code.fromAsset("target/payment-gateway-0.1.jar"))
+            .code(Code.fromAsset("target/PaymentGateway-0.1.jar"))
             .handler("com.org.lambda.MakePaymentHandler::handleRequest")
             .build();
         merchantPaymentTable.grantFullAccess(makePaymentLambda);
@@ -83,7 +83,7 @@ public class PaymentGatewayCdkStack extends Stack {
             .timeout(Duration.minutes(1))
             .memorySize(500)
             .environment(env)
-            .code(Code.fromAsset("target/payment-gateway-0.1.jar"))
+            .code(Code.fromAsset("target/PaymentGateway-0.1.jar"))
             .handler("com.org.lambda.GetPaymentHandler::handleRequest")
             .build();
         merchantPaymentTable.grantFullAccess(getPaymentLambda);

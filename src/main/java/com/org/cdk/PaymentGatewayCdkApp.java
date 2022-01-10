@@ -1,4 +1,4 @@
-package com.org;
+package com.org.cdk;
 
 import software.amazon.awscdk.core.App;
 import software.amazon.awscdk.core.Environment;

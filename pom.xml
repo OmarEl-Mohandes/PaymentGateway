@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.org</groupId>
-    <artifactId>payment-gateway</artifactId>
+    <artifactId>PaymentGateway</artifactId>
     <version>0.1</version>
 
     <repositories>
@@ -37,7 +37,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>3.0.0</version>
             <configuration>
-              <mainClass>com.org.PaymentGatewayCdkApp</mainClass>
+              <mainClass>com.org.cdk.PaymentGatewayCdkApp</mainClass>
             </configuration>
           </plugin>
 
@@ -64,6 +64,7 @@
             <version>2.22.0</version>
             <configuration>
               <includes>
+                <include>**/*Tests.java</include>
                 <include>**/*Test.java</include>
               </includes>
             </configuration>
