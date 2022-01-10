@@ -63,6 +63,9 @@ This project is far from 'production ready' status, and I had to cut a lot of co
 
 ## Usage
 
+**Note** The first invocation for all the APIs might take couple of seconds due to cold start of lambda, 
+since it serves no live traffic. 
+
  - ### POST /create-payment
     
     **Purpose:** Use this API to create a new ```paymentId``` for the merchant.
