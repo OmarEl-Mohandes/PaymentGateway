@@ -3,12 +3,10 @@ package com.org.dynamodb;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBSaveExpression;
 import com.amazonaws.services.dynamodbv2.model.AttributeValue;
-import com.amazonaws.services.dynamodbv2.model.ComparisonOperator;
 import com.amazonaws.services.dynamodbv2.model.ConditionalOperator;
 import com.amazonaws.services.dynamodbv2.model.ExpectedAttributeValue;
 import com.org.payments.MerchantPayment;
 
-import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
 
