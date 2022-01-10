@@ -1,4 +1,4 @@
-package com.org.cdk;
+package com.org.infra;
 
 import software.amazon.awscdk.core.*;
 import software.amazon.awscdk.services.apigateway.LambdaIntegration;

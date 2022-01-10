@@ -37,7 +37,7 @@
             <artifactId>exec-maven-plugin</artifactId>
             <version>3.0.0</version>
             <configuration>
-              <mainClass>com.org.cdk.PaymentGatewayCdkApp</mainClass>
+              <mainClass>com.org.infra.PaymentGatewayCdkApp</mainClass>
             </configuration>
           </plugin>
 

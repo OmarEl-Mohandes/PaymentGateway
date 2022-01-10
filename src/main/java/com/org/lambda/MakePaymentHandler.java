@@ -15,6 +15,7 @@ import com.org.payments.PaymentStatus;
 
 import java.time.Instant;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.org.modules.ResponseBuilder.error;
 import static com.org.modules.ResponseBuilder.ok;
 
@@ -29,12 +30,14 @@ public class MakePaymentHandler implements RequestHandler<APIGatewayV2HTTPEvent,
         this.dynamoDBClient = dynamoDBClient;
         this.objectMapper = new ObjectMapper();
         this.bankSimulator = new BankSimulator();
+        objectMapper.setSerializationInclusion(NON_NULL);
     }
 
     public MakePaymentHandler() {
         dynamoDBClient = new DynamoDBClient(DynamoDBMapperModule.provideDynamoDBMapper());
         objectMapper = new ObjectMapper();
         bankSimulator = new BankSimulator();
+        objectMapper.setSerializationInclusion(NON_NULL);
     }
 
     @Override

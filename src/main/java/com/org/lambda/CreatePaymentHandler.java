@@ -13,6 +13,7 @@ import com.org.payments.PaymentStatus;
 
 import java.time.Instant;
 
+import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.org.modules.ResponseBuilder.error;
 import static com.org.modules.ResponseBuilder.ok;
 
@@ -24,11 +25,13 @@ public class CreatePaymentHandler implements RequestHandler<APIGatewayV2HTTPEven
     public CreatePaymentHandler() {
         dynamoDBClient = new DynamoDBClient(DynamoDBMapperModule.provideDynamoDBMapper());
         objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(NON_NULL);
     }
 
     public CreatePaymentHandler(DynamoDBClient client) {
         this.dynamoDBClient = client;
         objectMapper = new ObjectMapper();
+        objectMapper.setSerializationInclusion(NON_NULL);
     }
 
     @Override
