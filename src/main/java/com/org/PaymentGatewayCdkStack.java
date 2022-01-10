@@ -13,6 +13,7 @@ import software.amazon.awscdk.services.lambda.Runtime;
 import java.util.HashMap;
 
 public class PaymentGatewayCdkStack extends Stack {
+
     public PaymentGatewayCdkStack(final Construct scope, final String id) {
         this(scope, id, null);
     }
@@ -23,46 +24,46 @@ public class PaymentGatewayCdkStack extends Stack {
         String tableName = "MerchantPayment";
         //Create a DynamoDB Table
         TableProps tableProps = TableProps.builder()
-        	    .partitionKey(Attribute.builder()
-        	         .name("paymentId")
-        	         .type(AttributeType.STRING)
-        	         .build())
-                .readCapacity(10)
-        	    .writeCapacity(10)
-        	    .removalPolicy(RemovalPolicy.DESTROY)
-                .timeToLiveAttribute("expiryTimestampSeconds")
-        	    .tableName(tableName)
-        	    .build();
+            .partitionKey(Attribute.builder()
+                .name("paymentId")
+                .type(AttributeType.STRING)
+                .build())
+            .readCapacity(10)
+            .writeCapacity(10)
+            .removalPolicy(RemovalPolicy.DESTROY)
+            .timeToLiveAttribute("expiryTimestampSeconds")
+            .tableName(tableName)
+            .build();
         Table merchantPaymentTable = new Table(this, tableName, tableProps);
-        
+
         //Local Secondary Index
         merchantPaymentTable.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
-        		.indexName("MerchantGSI")
-				.projectionType(ProjectionType.ALL)
-        		.partitionKey(Attribute.builder()
-           	    	 .name("merchantId")
-           	    	 .type(AttributeType.STRING)
-           	    	 .build())
-                .sortKey(Attribute.builder()
-                    .name("transactionDate")
-                    .type(AttributeType.STRING)
-                    .build())
-        		.build());
+            .indexName("MerchantGSI")
+            .projectionType(ProjectionType.ALL)
+            .partitionKey(Attribute.builder()
+                .name("merchantId")
+                .type(AttributeType.STRING)
+                .build())
+            .sortKey(Attribute.builder()
+                .name("transactionDate")
+                .type(AttributeType.STRING)
+                .build())
+            .build());
 
         //Lambda Environment Variables to pass to the Lambdas
-        HashMap<String, String> env = new HashMap <String, String>();
+        HashMap<String, String> env = new HashMap<String, String>();
         env.put("merchantPaymentTableName", merchantPaymentTable.getTableName());
-        
+
         //Lambda setup
         Function createPaymentLambda = Function.Builder.create(this, "CreatePaymentHandler")
-                .runtime(Runtime.JAVA_11)
-                .functionName("CreatePaymentHandler")
-                .timeout(Duration.minutes(1))
-                .memorySize(500)
-                .environment(env)
-                .code(Code.fromAsset("target/payment-gateway-0.1.jar"))
-                .handler("com.org.lambda.CreatePaymentHandler::handleRequest")
-                .build();
+            .runtime(Runtime.JAVA_11)
+            .functionName("CreatePaymentHandler")
+            .timeout(Duration.minutes(1))
+            .memorySize(500)
+            .environment(env)
+            .code(Code.fromAsset("target/payment-gateway-0.1.jar"))
+            .handler("com.org.lambda.CreatePaymentHandler::handleRequest")
+            .build();
         merchantPaymentTable.grantFullAccess(createPaymentLambda);
 
         Function makePaymentLambda = Function.Builder.create(this, "MakePaymentHandler")
@@ -87,17 +88,16 @@ public class PaymentGatewayCdkStack extends Stack {
             .build();
         merchantPaymentTable.grantFullAccess(getPaymentLambda);
 
-        
         // Allow lambdas to be called from API Gateway.
         RestApi api = RestApi.Builder.create(this, "Java CDK")
-                .restApiName("Java CDK").
+            .restApiName("Java CDK").
                 description("Java CDK")
-                .build();
+            .build();
 
         LambdaIntegration createPaymentIntegration = LambdaIntegration.Builder.create(createPaymentLambda)
-                .requestTemplates(new HashMap<String, String>() {{
-                    put("application/json", "{ \"statusCode\": \"200\" }");
-                }}).build();
+            .requestTemplates(new HashMap<String, String>() {{
+                put("application/json", "{ \"statusCode\": \"200\" }");
+            }}).build();
         LambdaIntegration makePaymentIntegration = LambdaIntegration.Builder.create(makePaymentLambda)
             .requestTemplates(new HashMap<String, String>() {{
                 put("application/json", "{ \"statusCode\": \"200\" }");
@@ -114,32 +114,31 @@ public class PaymentGatewayCdkStack extends Stack {
         Method makePaymentMethod = makePaymentResource.addMethod("POST", makePaymentIntegration);
         Method getPaymentMethod = getPaymentResource.addMethod("GET", getPaymentIntegration);
 
+        CfnOutput.Builder.create(this, "RegionOutput")
+            .description("")
+            .value("Region:" + this.getRegion())
+            .build();
 
-       CfnOutput.Builder.create(this, "RegionOutput")
-           .description("")
-           .value("Region:"+ this.getRegion())
-           .build();
+        CfnOutput.Builder.create(this, "DynamoDBPaymentTable")
+            .description("")
+            .value("DynamoDBTable:" + merchantPaymentTable.getTableName())
+            .build();
 
-       CfnOutput.Builder.create(this, "DynamoDBPaymentTable")
-           .description("")
-           .value("DynamoDBTable:"+ merchantPaymentTable.getTableName())
-           .build();
+        String urlPrefix = api.getUrl().substring(0, api.getUrl().length() - 1);
 
-       String urlPrefix = api.getUrl().substring(0, api.getUrl().length()-1);
+        CfnOutput.Builder.create(this, "CreatePaymentLambda")
+            .description("")
+            .value("CreatePayment Lambda:" + urlPrefix + createPaymentMethod.getResource().getPath())
+            .build();
 
-       CfnOutput.Builder.create(this, "CreatePaymentLambda")
-          .description("")
-          .value("CreatePayment Lambda:" + urlPrefix + createPaymentMethod.getResource().getPath())
-          .build();
+        CfnOutput.Builder.create(this, "MakePaymentLambda")
+            .description("")
+            .value("MakePayment Lambda:" + urlPrefix + makePaymentMethod.getResource().getPath())
+            .build();
 
-       CfnOutput.Builder.create(this, "MakePaymentLambda")
-          .description("")
-          .value("MakePayment Lambda:" + urlPrefix + makePaymentMethod.getResource().getPath())
-          .build();
-
-       CfnOutput.Builder.create(this, "GetPaymentLambda")
-          .description("")
-          .value("GetPayment Lambda:" + urlPrefix + getPaymentMethod.getResource().getPath())
-          .build();
+        CfnOutput.Builder.create(this, "GetPaymentLambda")
+            .description("")
+            .value("GetPayment Lambda:" + urlPrefix + getPaymentMethod.getResource().getPath())
+            .build();
     }
 }

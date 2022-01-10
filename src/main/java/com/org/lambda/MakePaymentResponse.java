@@ -1,6 +1,7 @@
 package com.org.lambda;
 
 public class MakePaymentResponse {
+
     private String paymentStatus;
     private Integer failCode;
     private String failReason;

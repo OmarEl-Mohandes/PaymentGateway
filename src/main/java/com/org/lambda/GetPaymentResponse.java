@@ -1,6 +1,7 @@
 package com.org.lambda;
 
 public class GetPaymentResponse {
+
     private String cardNumber;
     private Integer expiryYear;
     private Integer expiryMonth;

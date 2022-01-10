@@ -13,51 +13,50 @@ import com.org.payments.PaymentStatus;
 
 import java.time.Instant;
 
-import static com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL;
 import static com.org.modules.ResponseBuilder.error;
 import static com.org.modules.ResponseBuilder.ok;
 
 public class CreatePaymentHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
-	private final DynamoDBClient dynamoDBClient;
-	private final ObjectMapper objectMapper;
 
-	public CreatePaymentHandler() {
-		dynamoDBClient = new DynamoDBClient(DynamoDBMapperModule.provideDynamoDBMapper());
-		objectMapper = new ObjectMapper();
-	}
+    private final DynamoDBClient dynamoDBClient;
+    private final ObjectMapper objectMapper;
 
-	public CreatePaymentHandler(DynamoDBClient client) {
-		this.dynamoDBClient = client;
-		objectMapper = new ObjectMapper();
-		objectMapper.setSerializationInclusion(NON_NULL);
-	}
+    public CreatePaymentHandler() {
+        dynamoDBClient = new DynamoDBClient(DynamoDBMapperModule.provideDynamoDBMapper());
+        objectMapper = new ObjectMapper();
+    }
 
-  @Override
-  public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
-	  try {
-	  	CreatePaymentInput paymentInput = objectMapper.readValue(event.getBody(), CreatePaymentInput.class);
+    public CreatePaymentHandler(DynamoDBClient client) {
+        this.dynamoDBClient = client;
+        objectMapper = new ObjectMapper();
+    }
 
-	  	CreatePaymentResponse createPaymentResponse = createPayment(paymentInput);
+    @Override
+    public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
+        try {
+            CreatePaymentInput paymentInput = objectMapper.readValue(event.getBody(), CreatePaymentInput.class);
 
-	  	String jsonResponse = objectMapper.writeValueAsString(createPaymentResponse);
+            CreatePaymentResponse createPaymentResponse = createPayment(paymentInput);
 
-		return ok(jsonResponse);
-	  } catch (JsonProcessingException e) {
-	  	return error("Input is missing or have extra fields, check docs", 400);
-	}
-  }
+            String jsonResponse = objectMapper.writeValueAsString(createPaymentResponse);
 
-  CreatePaymentResponse createPayment(CreatePaymentInput paymentInput) {
-		MerchantPayment payment = MerchantPayment.builder()
-			.newPayment()
-			.withStatus(PaymentStatus.Created.name())
-			.withMerchantId(paymentInput.getMerchantId())
-			.withCreationTimestampSeconds(Instant.now().getEpochSecond())
-			.build();
+            return ok(jsonResponse);
+        } catch (JsonProcessingException e) {
+            return error("Input is missing or have extra fields, check docs", 400);
+        }
+    }
 
-		dynamoDBClient.save(payment);
+    CreatePaymentResponse createPayment(CreatePaymentInput paymentInput) {
+        MerchantPayment payment = MerchantPayment.builder()
+            .newPayment()
+            .withStatus(PaymentStatus.Created.name())
+            .withMerchantId(paymentInput.getMerchantId())
+            .withCreationTimestampSeconds(Instant.now().getEpochSecond())
+            .build();
 
-		return new CreatePaymentResponse(payment.getPaymentId(), payment.getStatus(), payment.getCreationTimestampSeconds());
-	}
+        dynamoDBClient.save(payment);
+
+        return new CreatePaymentResponse(payment.getPaymentId(), payment.getStatus(), payment.getCreationTimestampSeconds());
+    }
 
 }

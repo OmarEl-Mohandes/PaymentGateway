@@ -4,6 +4,7 @@ import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
 import org.json.simple.JSONObject;
 
 public class ResponseBuilder {
+
     public static APIGatewayV2HTTPResponse ok(String response) {
         return APIGatewayV2HTTPResponse.builder()
             .withStatusCode(200)

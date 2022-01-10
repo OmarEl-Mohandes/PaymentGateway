@@ -10,8 +10,9 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-@DynamoDBTable(tableName="MerchantPayment")
+@DynamoDBTable(tableName = "MerchantPayment")
 public class MerchantPayment {
+
     private String paymentId;
     private String merchantId;
     private String cardNumber;
@@ -26,7 +27,7 @@ public class MerchantPayment {
     private Long creationTimestampSeconds;
     private Long version;
 
-    @DynamoDBHashKey(attributeName="paymentId")
+    @DynamoDBHashKey(attributeName = "paymentId")
     public String getPaymentId() {
         return paymentId;
     }
@@ -43,7 +44,7 @@ public class MerchantPayment {
         this.merchantId = merchantId;
     }
 
-    @DynamoDBAttribute(attributeName="cardNumber")
+    @DynamoDBAttribute(attributeName = "cardNumber")
     public String getCardNumber() {
         return cardNumber;
     }
@@ -52,7 +53,7 @@ public class MerchantPayment {
         this.cardNumber = cardNumber;
     }
 
-    @DynamoDBAttribute(attributeName="cardName")
+    @DynamoDBAttribute(attributeName = "cardName")
     public String getCardName() {
         return cardName;
     }
@@ -61,7 +62,7 @@ public class MerchantPayment {
         this.cardName = cardName;
     }
 
-    @DynamoDBAttribute(attributeName="expiryYear")
+    @DynamoDBAttribute(attributeName = "expiryYear")
     public Integer getExpiryYear() {
         return expiryYear;
     }
@@ -70,7 +71,7 @@ public class MerchantPayment {
         this.expiryYear = expiryYear;
     }
 
-    @DynamoDBAttribute(attributeName="expiryMonth")
+    @DynamoDBAttribute(attributeName = "expiryMonth")
     public Integer getExpiryMonth() {
         return expiryMonth;
     }
@@ -79,7 +80,7 @@ public class MerchantPayment {
         this.expiryMonth = expiryMonth;
     }
 
-    @DynamoDBAttribute(attributeName="currency")
+    @DynamoDBAttribute(attributeName = "currency")
     public String getCurrency() {
         return currency;
     }
@@ -88,7 +89,7 @@ public class MerchantPayment {
         this.currency = currency;
     }
 
-    @DynamoDBAttribute(attributeName="amount")
+    @DynamoDBAttribute(attributeName = "amount")
     public Integer getAmount() {
         return amount;
     }
@@ -97,7 +98,7 @@ public class MerchantPayment {
         this.amount = amount;
     }
 
-    @DynamoDBAttribute(attributeName="status")
+    @DynamoDBAttribute(attributeName = "status")
     public String getStatus() {
         return status;
     }
@@ -106,7 +107,7 @@ public class MerchantPayment {
         this.status = status;
     }
 
-    @DynamoDBAttribute(attributeName="billingAddress")
+    @DynamoDBAttribute(attributeName = "billingAddress")
     public String getBillingAddress() {
         return billingAddress;
     }
@@ -115,7 +116,7 @@ public class MerchantPayment {
         this.billingAddress = billingAddress;
     }
 
-    @DynamoDBAttribute(attributeName="expiryTimestampSeconds")
+    @DynamoDBAttribute(attributeName = "expiryTimestampSeconds")
     public Long getExpiryTimestampSeconds() {
         return expiryTimestampSeconds;
     }
@@ -124,7 +125,7 @@ public class MerchantPayment {
         this.expiryTimestampSeconds = expiryTimestampSeconds;
     }
 
-    @DynamoDBAttribute(attributeName="creationTimestampSeconds")
+    @DynamoDBAttribute(attributeName = "creationTimestampSeconds")
     public Long getCreationTimestampSeconds() {
         return creationTimestampSeconds;
     }
@@ -165,6 +166,7 @@ public class MerchantPayment {
     }
 
     public static class MerchantPaymentBuilder {
+
         private MerchantPayment payment;
 
         public MerchantPaymentBuilder() {

@@ -20,6 +20,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class AcceptanceTests {
+
     private static DynamoDB dynamoDB;
     private static DynamoDBMapper mapper;
     private static CreatePaymentHandler createPaymentHandler;
@@ -66,7 +67,7 @@ public class AcceptanceTests {
     @Test
     public void testCreatePaymentMultipleTimesShouldReturnDifferentPaymentIds() {
         Set<String> paymentIds = new HashSet<>();
-        for (int i = 0 ; i < 10 ; i ++) {
+        for (int i = 0; i < 10; i++) {
             CreatePaymentInput input = new CreatePaymentInput(merchantId);
             CreatePaymentResponse payment = createPaymentHandler.createPayment(input);
             paymentIds.add(payment.getPaymentId());
@@ -187,7 +188,7 @@ public class AcceptanceTests {
         MakePaymentInput makePaymentInput = createMakePaymentInput();
         makePaymentInput.setPaymentId(createPaymentResponse.getPaymentId());
 
-        for (int i = 0 ; i < 100 ; i ++) {
+        for (int i = 0; i < 100; i++) {
             makePaymentHandler.processMakePayment(makePaymentInput);
         }
 

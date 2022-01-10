@@ -1,6 +1,7 @@
 package com.org.lambda;
 
 public class GetPaymentInput {
+
     private String merchantId;
     private String paymentId;
 

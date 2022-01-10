@@ -19,98 +19,99 @@ import static com.org.modules.ResponseBuilder.error;
 import static com.org.modules.ResponseBuilder.ok;
 
 public class MakePaymentHandler implements RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTPResponse> {
-	private final DynamoDBClient dynamoDBClient;
-	private final ObjectMapper objectMapper;
-	private final BankSimulator bankSimulator;
-	private LambdaLogger logger;
 
-	public MakePaymentHandler(final DynamoDBClient dynamoDBClient) {
-		this.dynamoDBClient = dynamoDBClient;
-		this.objectMapper = new ObjectMapper();
-		this.bankSimulator = new BankSimulator();
-	}
+    private final DynamoDBClient dynamoDBClient;
+    private final ObjectMapper objectMapper;
+    private final BankSimulator bankSimulator;
+    private LambdaLogger logger;
 
-	public MakePaymentHandler() {
-		dynamoDBClient = new DynamoDBClient(DynamoDBMapperModule.provideDynamoDBMapper());
-		objectMapper = new ObjectMapper();
-		bankSimulator = new BankSimulator();
-	}
+    public MakePaymentHandler(final DynamoDBClient dynamoDBClient) {
+        this.dynamoDBClient = dynamoDBClient;
+        this.objectMapper = new ObjectMapper();
+        this.bankSimulator = new BankSimulator();
+    }
 
-  @Override
-  public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
-		logger = context.getLogger();
-		APIGatewayV2HTTPResponse response;
+    public MakePaymentHandler() {
+        dynamoDBClient = new DynamoDBClient(DynamoDBMapperModule.provideDynamoDBMapper());
+        objectMapper = new ObjectMapper();
+        bankSimulator = new BankSimulator();
+    }
 
-		try {
-			MakePaymentInput paymentInput = objectMapper.readValue(event.getBody(), MakePaymentInput.class);
+    @Override
+    public APIGatewayV2HTTPResponse handleRequest(APIGatewayV2HTTPEvent event, Context context) {
+        logger = context.getLogger();
+        APIGatewayV2HTTPResponse response;
 
-			MakePaymentResponse paymentResponse = processMakePayment(paymentInput);
+        try {
+            MakePaymentInput paymentInput = objectMapper.readValue(event.getBody(), MakePaymentInput.class);
 
-			String jsonResponse = objectMapper.writeValueAsString(paymentResponse);
+            MakePaymentResponse paymentResponse = processMakePayment(paymentInput);
 
-			// The reason why I choose to always return Ok response with failure codes, is because I assume there should be
-			// another layer for the authorisation of the merchant client to use the merchantId.
-			// So I assumed that these http status codes are reserved for that use case.
-			response = ok(jsonResponse);
-		} catch (JsonProcessingException e) {
-			response = error("Input is missing or have extra fields, check docs", 400);
-		}
+            String jsonResponse = objectMapper.writeValueAsString(paymentResponse);
 
-		return response;
-	}
+            // The reason why I choose to always return Ok response with failure codes, is because I assume there should be
+            // another layer for the authorisation of the merchant client to use the merchantId.
+            // So I assumed that these http status codes are reserved for that use case.
+            response = ok(jsonResponse);
+        } catch (JsonProcessingException e) {
+            response = error("Input is missing or have extra fields, check docs", 400);
+        }
 
-	MakePaymentResponse processMakePayment(MakePaymentInput paymentInput) {
-		MerchantPayment existingPayment = dynamoDBClient.getMerchantPayment(paymentInput.getPaymentId());
-		if (isPaymentExpiredOrNonExist(existingPayment)) {
-			return new MakePaymentResponse(PaymentStatus.NotFound.name(), 404, "PaymentId is expired or not found");
+        return response;
+    }
 
-		} else if (!existingPayment.getMerchantId().equals(paymentInput.getMerchantId())) {
-			return new MakePaymentResponse(PaymentStatus.NotAuthorised.name(), 401, "This merchant doesn't have access to this payment");
+    MakePaymentResponse processMakePayment(MakePaymentInput paymentInput) {
+        MerchantPayment existingPayment = dynamoDBClient.getMerchantPayment(paymentInput.getPaymentId());
+        if (isPaymentExpiredOrNonExist(existingPayment)) {
+            return new MakePaymentResponse(PaymentStatus.NotFound.name(), 404, "PaymentId is expired or not found");
 
-		} else if (isPaymentSettled(existingPayment)) {
-			// TODO: Customise failCode/failReason based on the status stored.
-			return new MakePaymentResponse(existingPayment.getStatus(), null, null);
+        } else if (!existingPayment.getMerchantId().equals(paymentInput.getMerchantId())) {
+            return new MakePaymentResponse(PaymentStatus.NotAuthorised.name(), 401, "This merchant doesn't have access to this payment");
 
-		} else {
-			MerchantPayment paymentToBeSaved = MerchantPayment.builder()
-				.withMakePaymentInput(paymentInput)
-				.withStatus(existingPayment.getStatus())
-				.withCreationTimestampSeconds(existingPayment.getCreationTimestampSeconds())
-				.withVersion(existingPayment.getVersion())
-				.build();
+        } else if (isPaymentSettled(existingPayment)) {
+            // TODO: Customise failCode/failReason based on the status stored.
+            return new MakePaymentResponse(existingPayment.getStatus(), null, null);
 
-			//TODO: If the bankSimulator.makePayment is idempotent (e.g on paymentId), add retries based on status codes.
-			PaymentStatus paymentStatus = bankSimulator.makePayment(paymentToBeSaved);
+        } else {
+            MerchantPayment paymentToBeSaved = MerchantPayment.builder()
+                .withMakePaymentInput(paymentInput)
+                .withStatus(existingPayment.getStatus())
+                .withCreationTimestampSeconds(existingPayment.getCreationTimestampSeconds())
+                .withVersion(existingPayment.getVersion())
+                .build();
 
-			paymentToBeSaved.setStatus(paymentStatus.name());
+            //TODO: If the bankSimulator.makePayment is idempotent (e.g on paymentId), add retries based on status codes.
+            PaymentStatus paymentStatus = bankSimulator.makePayment(paymentToBeSaved);
 
-			saveToDynamo(paymentToBeSaved);
+            paymentToBeSaved.setStatus(paymentStatus.name());
 
-			return new MakePaymentResponse(paymentStatus.name(), null , null);
-		}
-	}
+            saveToDynamo(paymentToBeSaved);
 
-	private boolean isPaymentSettled(MerchantPayment existingPayment) {
-		return !(PaymentStatus.Pending.name().equals(existingPayment.getStatus())
-			|| PaymentStatus.Created.name().equals(existingPayment.getStatus()));
-	}
+            return new MakePaymentResponse(paymentStatus.name(), null, null);
+        }
+    }
 
-	private boolean isPaymentExpiredOrNonExist(MerchantPayment existingPayment) {
-		return existingPayment == null ||
-			(existingPayment.getExpiryTimestampSeconds() != null &&
-				Instant.ofEpochSecond(existingPayment.getExpiryTimestampSeconds()).compareTo(Instant.now()) < 0);
-	}
+    private boolean isPaymentSettled(MerchantPayment existingPayment) {
+        return !(PaymentStatus.Pending.name().equals(existingPayment.getStatus())
+            || PaymentStatus.Created.name().equals(existingPayment.getStatus()));
+    }
 
-	private void saveToDynamo(MerchantPayment payment) {
-		try {
-			dynamoDBClient.saveMakePayment(payment);
-		} catch (Exception e) {
-			//TODO:
-			// There will be an inconsistent state in this case between the bank status and our status. See README for other options.
-			// - Add retries with a strategy (e.g exponential back offs) with timeout when saving to DDB (based on Exceptions).
-			// - Emit a metric and alarm on it, Push to DLQ for async retries.
-			logger.log("Failed saving to DDB for paymentId: " + payment.getPaymentId());
-		}
-	}
+    private boolean isPaymentExpiredOrNonExist(MerchantPayment existingPayment) {
+        return existingPayment == null ||
+            (existingPayment.getExpiryTimestampSeconds() != null &&
+                Instant.ofEpochSecond(existingPayment.getExpiryTimestampSeconds()).compareTo(Instant.now()) < 0);
+    }
+
+    private void saveToDynamo(MerchantPayment payment) {
+        try {
+            dynamoDBClient.saveMakePayment(payment);
+        } catch (Exception e) {
+            //TODO:
+            // There will be an inconsistent state in this case between the bank status and our status. See README for other options.
+            // - Add retries with a strategy (e.g exponential back offs) with timeout when saving to DDB (based on Exceptions).
+            // - Emit a metric and alarm on it, Push to DLQ for async retries.
+            logger.log("Failed saving to DDB for paymentId: " + payment.getPaymentId());
+        }
+    }
 
 }

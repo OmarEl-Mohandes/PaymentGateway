@@ -1,6 +1,7 @@
 package com.org.lambda;
 
 public class CreatePaymentResponse {
+
     private String paymentId;
     private String status;
     private Long creationTimestampSeconds;
