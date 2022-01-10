@@ -43,7 +43,7 @@ public class CreatePaymentHandler implements RequestHandler<APIGatewayV2HTTPEven
 
 		return ok(jsonResponse);
 	  } catch (JsonProcessingException e) {
-		  return error("Json input is malformed, please check docs.", 400);
+	  	return error("Input is missing or have extra fields, check docs", 400);
 	}
   }
 

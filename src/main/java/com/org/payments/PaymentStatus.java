@@ -6,5 +6,6 @@ public enum PaymentStatus {
     Accepted,
     Declined,
     NotFound,
-    NotAuthorised
+    NotAuthorised,
+    InsufficientFunds
 }

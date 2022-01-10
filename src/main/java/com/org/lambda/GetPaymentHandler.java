@@ -4,7 +4,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPEvent;
 import com.amazonaws.services.lambda.runtime.events.APIGatewayV2HTTPResponse;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.org.dynamodb.DynamoDBClient;
 import com.org.modules.DynamoDBMapperModule;
@@ -34,6 +33,10 @@ public class GetPaymentHandler implements RequestHandler<APIGatewayV2HTTPEvent, 
 			String merchantId = event.getQueryStringParameters().get("merchantId");
 			String paymentId = event.getQueryStringParameters().get("paymentId");
 
+			if (merchantId == null || paymentId == null) {
+				return error("Missing merhantId/paymentId parameters", 400);
+			}
+
 			GetPaymentInput paymentInput = new GetPaymentInput(merchantId, paymentId);
 
 			GetPaymentResponse getPaymentResponse = getPayment(paymentInput);
@@ -43,7 +46,7 @@ public class GetPaymentHandler implements RequestHandler<APIGatewayV2HTTPEvent, 
 
 			return ok(jsonResponse);
 	  	} catch (Exception e) {
-		  	return error("query parameters are wrong, please check docs " + event.getRawQueryString() , 400);
+		  	return error("Internal Error" , 500);
 		}
   }
 
