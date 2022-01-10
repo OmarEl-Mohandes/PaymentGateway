@@ -36,7 +36,7 @@ public class PaymentGatewayCdkStack extends Stack {
             .build();
         Table merchantPaymentTable = new Table(this, tableName, tableProps);
 
-        //Local Secondary Index
+        //Global Secondary Index
         merchantPaymentTable.addGlobalSecondaryIndex(GlobalSecondaryIndexProps.builder()
             .indexName("MerchantGSI")
             .projectionType(ProjectionType.ALL)
@@ -45,8 +45,8 @@ public class PaymentGatewayCdkStack extends Stack {
                 .type(AttributeType.STRING)
                 .build())
             .sortKey(Attribute.builder()
-                .name("transactionDate")
-                .type(AttributeType.STRING)
+                .name("creationTimestampSeconds")
+                .type(AttributeType.NUMBER)
                 .build())
             .build());
 

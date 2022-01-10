@@ -24,8 +24,8 @@ I've used DynamoDB as a simple NoSQL store for payments. The hashkey for the ite
 on the table to make sure parallel retries on the same payments won't cause data inconsistency. 
 
 We can create different GSIs (GlobalSecondaryIndex) 
-depend on the use cases. For instance, we can create a GSI on `merhcantId` and sort key on `creationTimestamp` 
-to get all the payments for merchant for a specific window.
+depend on the use cases. For instance, I added a GSI on `merhcantId` and sort key on `creationTimestampSeconds` 
+to fetch all the payments for merchant for a specific window.
 
 ### Bank Simulator
 BankSimulator is a stubbed class to return different payment statuses based on the `amount` in the request. It's used only in `/make-payment` API.
