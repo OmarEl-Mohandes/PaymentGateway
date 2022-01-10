@@ -8,30 +8,30 @@ It consists of AWS API Gateway, Lambda, DynamoDB NoSQL and built using [CDK](htt
 ![payment-gateway](https://user-images.githubusercontent.com/1239788/148842390-66093bfd-13cc-4396-9e95-85312914d9f4.jpeg)
 
 ### Workflow
-I've used API Gateway to create three APIs, and each handled by a separate lambda function. I choose separate lambdas to maintain, provision, scale and deploy each use case separately.
+I've used API Gateway to create three APIs, and each handled by a separate lambda function. I choose separate lambdas to maintain, provision, scale and deploy each use case independently.
 
-To start a payment transaction you need to call `/create-payment` API to generate a new `payment-id` using your `merchant-id`. It stores this `payment-id` in DDB 
+To start a payment transaction you need to call `/create-payment` API to generate a new `payment-id` using your `merchant-id` and stores them in DDB 
 with a timestamp and status `Created`.
 Once the `payment-id` is created, it's attached to the `merchant-id` and will expire in 10 minutes in case no payment 
-has been made after.
+has been made after. TTL is enabled on this table so items can get deleted if expired. 
 
-Using the `payment-id` you can call `/make-payment` API with the required details to complete the payment. The reason I choose to separate the two APIs is enabling the `/make-payment` to be idempotent.
+Using the `payment-id` you can call `/make-payment` API with the required details to complete the payment.  I choose to separate the two APIs to make the `/make-payment` API idempotent.
 
 The API `/get-payment` can be called anytime to check the status of the payment.
 
 ### Data Store
-I've used DynamoDB as simple NoSQL store for payments. The hashkey for the item is `payment-id` so it can be retrieved quickly. I've used `version` to enable the optimistic locking 
-on the table to make sure different retries on writes can't cause data inconsistency. 
+I've used DynamoDB as a simple NoSQL store for payments. The hashkey for the item is `payment-id` so it can be retrieved quickly. I've used `version` to enable the optimistic locking 
+on the table to make sure parallel retries on the same payments won't cause data inconsistency. 
 
 We can create different GSIs (GlobalSecondaryIndex) 
-depends on the use cases. For instance, we can create a GSI on `merhcantId` and sort key on `creationTimestamp` 
-to get all the payments for merchant for a period of time.
+depend on the use cases. For instance, we can create a GSI on `merhcantId` and sort key on `creationTimestamp` 
+to get all the payments for merchant for a specific window.
 
 ### Bank Simulator
 BankSimulator is a stubbed class to return different payment statuses based on the `amount` in the request. It's used only in `/make-payment` API.
 
 ### Areas Of Improvements 
-This project is far from 'production ready' status, and I had to cut a lot of corners due to the time allocated. 
+This project is far from 'production ready' status, and I had to cut a lot of corners due to my available time  
 Nevertheless, here are some food for thought points:
 
 #### Security
@@ -42,7 +42,7 @@ Nevertheless, here are some food for thought points:
 
 #### Scalability/Cost
 Although, AWS Lambda can handle high TPS (relatively), it's not recommended to use for latency nor cost sensitive use cases. Scaling up Lambdas 
-has proven to be more costly than e.g running ECS tasks on th long run.
+has proven to be more costly than e.g running ECS tasks on the long run.
 
 #### Availability and Consistency 
 - In `/make-payment`, the call to BankSimulator happens first then we store the result to DDB. However, when the call to DDB fails, we won't store the result. 
@@ -52,9 +52,15 @@ transaction to the bank and and return `Failed` to the client.
   
 - We need to introduce throttling based on merchantIds, however this might increase complexity to clients usage.
 
-#### Testing
+#### Validation and Testing
  - Currently, the project is missing unit tests and integration tests. I've added some acceptance tests for some main scenarios, but it's far from done.
- - Missing input format validation for each field.
+ - Introducing input format validation for each field.
+ - Writing javadocs for each function API in my code, and proper API documentation.
+
+#### Monitoring and Observability
+A lot of metrics needs to be emitted specially in failure modes between the components. Big TODO around merchant alarms
+and dashboards.
+ 
 
 ## Usage
 
