@@ -45,8 +45,8 @@ public class PaymentGatewayCdkStack extends Stack {
                 .type(AttributeType.STRING)
                 .build())
             .sortKey(Attribute.builder()
-                .name("creationTimestampSeconds")
-                .type(AttributeType.NUMBER)
+                .name("transactionDate")
+                .type(AttributeType.STRING)
                 .build())
             .build());
 
